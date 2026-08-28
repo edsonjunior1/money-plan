@@ -6,6 +6,18 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 import {
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexDataLabels,
+  ApexLegend,
+  ApexStroke,
+  ApexTooltip,
+  ApexXAxis,
+  ApexYAxis,
+  ChartComponent,
+} from 'ng-apexcharts';
+
+import {
   calculateFutureValue,
   calculateInvestmentTimeline,
   calculateProjection,
@@ -22,7 +34,14 @@ interface PlannerFormModel {
 
 @Component({
   selector: 'app-planner',
-  imports: [CurrencyPipe, FormField, MatFormFieldModule, MatInputModule, MatCardModule],
+  imports: [
+    CurrencyPipe,
+    FormField,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    ChartComponent,
+  ],
   templateUrl: './planner.html',
   styleUrl: './planner.scss',
 })
@@ -96,4 +115,90 @@ export class Planner {
   );
 
   readonly isOnTrack = computed(() => this.monthlyDifference() >= 0);
+
+  readonly estimatedReturns = computed(() => {
+    const timeline = this.investmentTimeline();
+
+    return timeline[timeline.length - 1]?.interestAmount ?? 0;
+  });
+
+  readonly chartSeries = computed<ApexAxisChartSeries>(() => {
+    const timeline = this.investmentTimeline();
+
+    return [
+      {
+        name: 'Investment value',
+        type: 'area',
+        data: timeline.map((point) => point.investmentValue),
+      },
+      {
+        name: 'Total contributed',
+        type: 'line',
+        data: timeline.map((point) => point.contributedAmount),
+      },
+      {
+        name: 'Investment returns',
+        type: 'line',
+        data: timeline.map((point) => point.interestAmount),
+      },
+    ];
+  });
+
+  readonly chartOptions: ApexChart = {
+    type: 'line',
+    height: 360,
+    toolbar: {
+      show: false,
+    },
+    zoom: {
+      enabled: false,
+    },
+  };
+
+  readonly chartStroke: ApexStroke = {
+    curve: 'smooth',
+    width: [3, 2, 2],
+    dashArray: [0, 0, 6],
+  };
+
+  readonly chartDataLabels: ApexDataLabels = {
+    enabled: false,
+  };
+
+  readonly chartXAxis = computed<ApexXAxis>(() => ({
+    categories: this.investmentTimeline().map((point) => `Year ${point.year}`),
+    labels: {
+      rotate: 0,
+    },
+  }));
+
+  readonly chartYAxis: ApexYAxis = {
+    labels: {
+      formatter: (value: number) =>
+        new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+          maximumFractionDigits: 0,
+        }).format(value),
+    },
+  };
+
+  readonly chartTooltip: ApexTooltip = {
+    shared: true,
+    intersect: false,
+    y: {
+      formatter: (value: number) =>
+        new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(value),
+    },
+  };
+
+  readonly chartLegend: ApexLegend = {
+    position: 'top',
+    horizontalAlign: 'center',
+  };
 }

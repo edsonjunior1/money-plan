@@ -58,7 +58,7 @@
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>How much do you plan to invest every month?</mat-label>
+        <mat-label> How much do you plan to invest every month? </mat-label>
 
         <span matTextPrefix>R$&nbsp;</span>
 
@@ -157,4 +157,59 @@
       </mat-card-content>
     </mat-card>
   </section>
+
+  <mat-card appearance="outlined" class="mt-6">
+    <mat-card-header>
+      <mat-card-title>Investment Growth</mat-card-title>
+
+      <mat-card-subtitle>
+        Projected evolution of your contributions and investment value
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content class="mt-6">
+      @if (plannerForm().valid()) {
+        <div class="mb-6 grid gap-4 sm:grid-cols-3">
+          <div class="rounded-lg border border-gray-200 p-4">
+            <p class="text-sm text-gray-500">Target Amount</p>
+
+            <p class="mt-1 text-xl font-semibold">
+              {{ model().targetAmount | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+            </p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-4">
+            <p class="text-sm text-gray-500">Projected Amount</p>
+
+            <p class="mt-1 text-xl font-semibold">
+              {{ plannedFutureValue() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+            </p>
+          </div>
+
+          <div class="rounded-lg border border-gray-200 p-4">
+            <p class="text-sm text-gray-500">Estimated Returns</p>
+
+            <p class="mt-1 text-xl font-semibold">
+              {{ estimatedReturns() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+            </p>
+          </div>
+        </div>
+
+        <apx-chart
+          [series]="chartSeries()"
+          [chart]="chartOptions"
+          [xaxis]="chartXAxis()"
+          [yaxis]="chartYAxis"
+          [stroke]="chartStroke"
+          [dataLabels]="chartDataLabels"
+          [tooltip]="chartTooltip"
+          [legend]="chartLegend"
+        />
+      } @else {
+        <div class="rounded-lg bg-amber-50 p-4 text-amber-800">
+          Fix the invalid fields to see the investment growth chart.
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
 </main>
