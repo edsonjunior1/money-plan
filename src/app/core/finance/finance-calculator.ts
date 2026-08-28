@@ -54,14 +54,18 @@ export function calculateFutureValue(
 
 export function calculateProjection(plan: InvestmentPlan): InvestmentProjection {
   const requiredMonthlyContribution = calculateRequiredMonthlyContribution(plan);
+
   const months = plan.years * MONTHS_PER_YEAR;
-  const totalContributed = plan.currentAmount + requiredMonthlyContribution + months;
+
+  const totalContributed = plan.currentAmount + requiredMonthlyContribution * months;
+
   const finalAmount = calculateFutureValue(
     plan.currentAmount,
     requiredMonthlyContribution,
     plan.years,
     plan.annualReturnRate,
   );
+
   const totalInterest = finalAmount - totalContributed;
 
   return {

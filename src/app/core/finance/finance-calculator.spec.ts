@@ -51,4 +51,17 @@ describe('finance-calculator', () => {
     expect(projection.finalAmount).toBeCloseTo(100_000, 2);
     expect(projection.totalInterest).toBeGreaterThan(0);
   });
+
+  it('should calculate the total contributed across all months', () => {
+    const projection = calculateProjection({
+      currentAmount: 10_000,
+      targetAmount: 100_000,
+      years: 2,
+      annualReturnRate: 8,
+    });
+
+    const expectedTotalContributed = 10_000 + projection.requiredMonthlyContribution * 24;
+
+    expect(projection.totalContributed).toBeCloseTo(expectedTotalContributed, 2);
+  });
 });

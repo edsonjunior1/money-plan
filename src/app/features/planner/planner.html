@@ -1,0 +1,200 @@
+<main class="mx-auto max-w-5xl p-6">
+  <section class="mb-8">
+    <h1 class="text-3xl font-semibold">Financial Plan</h1>
+
+    <p class="mt-2 text-sm text-gray-600">
+      Find out how much you need to invest every month to reach your financial goal.
+    </p>
+  </section>
+
+  <section class="grid gap-6 md:grid-cols-2">
+    <div class="space-y-5 rounded-xl border border-gray-200 p-6">
+      <h2 class="text-xl font-medium">Your Goal</h2>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium"> How much do you currently have? </span>
+
+        <input
+          type="number"
+          step="100"
+          class="w-full rounded-lg border px-3 py-2"
+          [class.border-red-500]="
+            plannerForm.currentAmount().touched() && plannerForm.currentAmount().invalid()
+          "
+          [class.border-gray-300]="
+            !plannerForm.currentAmount().touched() || plannerForm.currentAmount().valid()
+          "
+          [formField]="plannerForm.currentAmount"
+        />
+
+        @if (plannerForm.currentAmount().touched() && plannerForm.currentAmount().invalid()) {
+          <p class="mt-1 text-sm text-red-600">The current amount cannot be negative.</p>
+        }
+      </label>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium"> What is your target amount? </span>
+
+        <input
+          type="number"
+          step="1000"
+          class="w-full rounded-lg border px-3 py-2"
+          [class.border-red-500]="
+            plannerForm.targetAmount().touched() && plannerForm.targetAmount().invalid()
+          "
+          [class.border-gray-300]="
+            !plannerForm.targetAmount().touched() || plannerForm.targetAmount().valid()
+          "
+          [formField]="plannerForm.targetAmount"
+        />
+
+        @if (plannerForm.targetAmount().touched() && plannerForm.targetAmount().invalid()) {
+          <p class="mt-1 text-sm text-red-600">Enter an amount greater than zero.</p>
+        }
+      </label>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium"> In how many years? </span>
+
+        <input
+          type="number"
+          step="1"
+          class="w-full rounded-lg border px-3 py-2"
+          [class.border-red-500]="plannerForm.years().touched() && plannerForm.years().invalid()"
+          [class.border-gray-300]="!plannerForm.years().touched() || plannerForm.years().valid()"
+          [formField]="plannerForm.years"
+        />
+
+        @if (plannerForm.years().touched() && plannerForm.years().invalid()) {
+          <p class="mt-1 text-sm text-red-600">Enter at least 1 year.</p>
+        }
+      </label>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium"> Expected annual return </span>
+
+        <div class="relative">
+          <input
+            type="number"
+            step="0.1"
+            class="w-full rounded-lg border px-3 py-2 pr-10"
+            [class.border-red-500]="
+              plannerForm.annualReturnRate().touched() && plannerForm.annualReturnRate().invalid()
+            "
+            [class.border-gray-300]="
+              !plannerForm.annualReturnRate().touched() || plannerForm.annualReturnRate().valid()
+            "
+            [formField]="plannerForm.annualReturnRate"
+          />
+
+          <span class="absolute right-3 top-2 text-gray-500"> % </span>
+        </div>
+
+        @if (plannerForm.annualReturnRate().touched() && plannerForm.annualReturnRate().invalid()) {
+          <p class="mt-1 text-sm text-red-600">The expected return cannot be negative.</p>
+        }
+      </label>
+
+      <label class="block">
+        <span class="mb-1 block text-sm font-medium">
+          How much do you plan to invest every month?
+        </span>
+
+        <input
+          type="number"
+          step="100"
+          class="w-full rounded-lg border px-3 py-2"
+          [class.border-red-500]="
+            plannerForm.plannedMonthlyContribution().touched() &&
+            plannerForm.plannedMonthlyContribution().invalid()
+          "
+          [class.border-gray-300]="
+            !plannerForm.plannedMonthlyContribution().touched() ||
+            plannerForm.plannedMonthlyContribution().valid()
+          "
+          [formField]="plannerForm.plannedMonthlyContribution"
+        />
+
+        @if (
+          plannerForm.plannedMonthlyContribution().touched() &&
+          plannerForm.plannedMonthlyContribution().invalid()
+        ) {
+          <p class="mt-1 text-sm text-red-600">The monthly contribution cannot be negative.</p>
+        }
+      </label>
+    </div>
+
+    <div class="space-y-5 rounded-xl border border-gray-200 p-6">
+      <h2 class="text-xl font-medium">Results</h2>
+
+      @if (plannerForm().valid()) {
+        <div>
+          <p class="text-sm text-gray-600">Required monthly contribution</p>
+
+          <p class="text-3xl font-semibold">
+            {{ requiredMonthlyContribution() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-600">With your planned contribution, you will have</p>
+
+          <p class="text-2xl font-semibold">
+            {{ plannedFutureValue() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-sm text-gray-600">Monthly difference</p>
+
+          <p class="text-xl font-medium">
+            {{ monthlyDifference() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        @if (isOnTrack()) {
+          <div class="rounded-lg bg-green-50 p-4 text-green-800">
+            Your planned contribution is enough to reach your goal.
+          </div>
+        } @else {
+          <div class="rounded-lg bg-red-50 p-4 text-red-800">
+            You need to increase your monthly contribution by
+            {{ -monthlyDifference() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}.
+          </div>
+        }
+
+        <hr class="border-gray-200" />
+
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between gap-4">
+            <span>Total contributed</span>
+
+            <strong>
+              {{ projection().totalContributed | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+            </strong>
+          </div>
+
+          <div class="flex justify-between gap-4">
+            <span>Estimated returns</span>
+
+            <strong>
+              {{ projection().totalInterest | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+            </strong>
+          </div>
+
+          <div class="flex justify-between gap-4">
+            <span>Projected final amount</span>
+
+            <strong>
+              {{ projection().finalAmount | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+            </strong>
+          </div>
+        </div>
+      } @else {
+        <div class="rounded-lg bg-amber-50 p-4 text-amber-800">
+          Fix the invalid fields to see your financial projection.
+        </div>
+      }
+    </div>
+  </section>
+</main>
