@@ -1,9 +1,13 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, ElementRef, signal, viewChild } from '@angular/core';
 import { form, FormField, min, required } from '@angular/forms/signals';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+
+import html2canvas from 'html2canvas-pro';
+import { jsPDF } from 'jspdf';
 
 import {
   ApexAxisChartSeries,
@@ -37,9 +41,10 @@ interface PlannerFormModel {
   imports: [
     CurrencyPipe,
     FormField,
+    MatButtonModule,
+    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCardModule,
     ChartComponent,
   ],
   templateUrl: './planner.html',
@@ -201,4 +206,67 @@ export class Planner {
     position: 'top',
     horizontalAlign: 'center',
   };
+
+  readonly reportContent = viewChild<ElementRef<HTMLElement>>('reportContent');
+
+  readonly isExportingPdf = signal(false);
+
+  async exportPdf(): Promise<void> {
+    const element = this.reportContent()?.nativeElement;
+
+    if (!element || this.isExportingPdf()) {
+      return;
+    }
+
+    this.isExportingPdf.set(true);
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+      });
+
+      const imageData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const margin = 10;
+
+      const contentWidth = pageWidth - margin * 2;
+
+      const printableHeight = pageHeight - margin * 2;
+
+      const imageHeight = (canvas.height * contentWidth) / canvas.width;
+
+      let remainingHeight = imageHeight;
+      let position = margin;
+
+      pdf.addImage(imageData, 'PNG', margin, position, contentWidth, imageHeight);
+
+      remainingHeight -= printableHeight;
+
+      while (remainingHeight > 0) {
+        pdf.addPage();
+
+        position = margin - (imageHeight - remainingHeight);
+
+        pdf.addImage(imageData, 'PNG', margin, position, contentWidth, imageHeight);
+
+        remainingHeight -= printableHeight;
+      }
+
+      pdf.save('money-plan.pdf');
+    } finally {
+      this.isExportingPdf.set(false);
+    }
+  }
 }

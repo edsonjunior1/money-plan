@@ -1,0 +1,12 @@
+.pdf-report-container {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: 1000px;
+  pointer-events: none;
+}
+
+.pdf-report {
+  width: 1000px;
+  background: #fff;
+}

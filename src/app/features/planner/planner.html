@@ -1,10 +1,26 @@
-<main class="mx-auto max-w-5xl p-6">
-  <section class="mb-8">
-    <h1 class="text-3xl font-semibold">Financial Plan</h1>
+<main class="mx-auto max-w-5xl bg-white p-6">
+  <section class="mb-8 flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-semibold">Financial Plan</h1>
 
-    <p class="mt-2 text-sm text-gray-600">
-      Find out how much you need to invest every month to reach your financial goal.
-    </p>
+      <p class="mt-2 text-sm text-gray-600">
+        Find out how much you need to invest every month to reach your financial goal.
+      </p>
+    </div>
+
+    <button
+      matButton="filled"
+      type="button"
+      [disabled]="plannerForm().invalid() || isExportingPdf()"
+      (click)="exportPdf()"
+      data-html2canvas-ignore
+    >
+      @if (isExportingPdf()) {
+        Exporting...
+      } @else {
+        Export PDF
+      }
+    </button>
   </section>
 
   <section class="grid gap-6 md:grid-cols-2">
@@ -213,3 +229,136 @@
     </mat-card-content>
   </mat-card>
 </main>
+
+<div class="pdf-report-container">
+  <div #reportContent class="pdf-report bg-white p-8">
+    <header class="mb-8 border-b border-gray-200 pb-5">
+      <h1 class="text-3xl font-semibold">Financial Plan</h1>
+
+      <p class="mt-2 text-sm text-gray-500">Financial projection based on your investment plan</p>
+    </header>
+
+    <section class="mb-6">
+      <h2 class="mb-4 text-lg font-semibold">Investment Plan</h2>
+
+      <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div>
+          <p class="text-xs text-gray-500">Current Amount</p>
+
+          <p class="font-semibold">
+            {{ model().currentAmount | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500">Target Amount</p>
+
+          <p class="font-semibold">
+            {{ model().targetAmount | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500">Investment Period</p>
+
+          <p class="font-semibold">
+            {{ model().years }}
+            {{ model().years === 1 ? 'year' : 'years' }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500">Expected Annual Return</p>
+
+          <p class="font-semibold">{{ model().annualReturnRate }}%</p>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500">Planned Monthly Contribution</p>
+
+          <p class="font-semibold">
+            {{
+              model().plannedMonthlyContribution | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR'
+            }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs text-gray-500">Required Monthly Contribution</p>
+
+          <p class="font-semibold">
+            {{ requiredMonthlyContribution() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <hr class="my-6 border-gray-200" />
+
+    <section class="mb-6">
+      <h2 class="mb-4 text-lg font-semibold">Projection Results</h2>
+
+      <div class="grid grid-cols-3 gap-4">
+        <div class="rounded-lg border border-gray-200 p-4">
+          <p class="text-xs text-gray-500">Target Amount</p>
+
+          <p class="mt-1 text-lg font-semibold">
+            {{ model().targetAmount | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 p-4">
+          <p class="text-xs text-gray-500">Projected Amount</p>
+
+          <p class="mt-1 text-lg font-semibold">
+            {{ plannedFutureValue() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 p-4">
+          <p class="text-xs text-gray-500">Estimated Returns</p>
+
+          <p class="mt-1 text-lg font-semibold">
+            {{ estimatedReturns() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="mt-4 rounded-lg p-4"
+        [class.bg-green-50]="isOnTrack()"
+        [class.text-green-800]="isOnTrack()"
+        [class.bg-red-50]="!isOnTrack()"
+        [class.text-red-800]="!isOnTrack()"
+      >
+        @if (isOnTrack()) {
+          Your planned monthly contribution is enough to reach your goal.
+        } @else {
+          You need to increase your monthly contribution by
+          {{ -monthlyDifference() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}.
+        }
+      </div>
+    </section>
+
+    <hr class="my-6 border-gray-200" />
+
+    <section>
+      <h2 class="text-lg font-semibold">Investment Growth</h2>
+
+      <p class="mb-5 mt-1 text-sm text-gray-500">
+        Projected evolution of contributions, returns and investment value
+      </p>
+
+      <apx-chart
+        [series]="chartSeries()"
+        [chart]="chartOptions"
+        [xaxis]="chartXAxis()"
+        [yaxis]="chartYAxis"
+        [stroke]="chartStroke"
+        [dataLabels]="chartDataLabels"
+        [tooltip]="chartTooltip"
+        [legend]="chartLegend"
+      />
+    </section>
+  </div>
+</div>
