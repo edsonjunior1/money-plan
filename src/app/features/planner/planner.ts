@@ -1,6 +1,9 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, computed, signal } from '@angular/core';
 import { form, FormField, min, required } from '@angular/forms/signals';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import {
   calculateFutureValue,
@@ -18,7 +21,7 @@ interface PlannerFormModel {
 
 @Component({
   selector: 'app-planner',
-  imports: [CurrencyPipe, FormField],
+  imports: [CurrencyPipe, FormField, MatFormFieldModule, MatInputModule, MatCardModule],
   templateUrl: './planner.html',
   styleUrl: './planner.scss',
 })
