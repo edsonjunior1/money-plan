@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 
 import {
   calculateFutureValue,
+  calculateInvestmentTimeline,
   calculateProjection,
   calculateRequiredMonthlyContribution,
 } from '../../core/finance/finance-calculator';
@@ -72,6 +73,17 @@ export class Planner {
     const value = this.model();
 
     return calculateFutureValue(
+      value.currentAmount,
+      value.plannedMonthlyContribution,
+      value.years,
+      value.annualReturnRate,
+    );
+  });
+
+  readonly investmentTimeline = computed(() => {
+    const value = this.model();
+
+    return calculateInvestmentTimeline(
       value.currentAmount,
       value.plannedMonthlyContribution,
       value.years,

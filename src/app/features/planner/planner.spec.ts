@@ -79,4 +79,17 @@ describe('Planner', () => {
 
     expect(component.plannedFutureValue()).toBeGreaterThan(initialFutureValue);
   });
+
+  it('should generate an investment timeline from the planner model', () => {
+    const timeline = component.investmentTimeline();
+
+    expect(timeline).toHaveLength(component.model().years + 1);
+
+    expect(timeline[0].year).toBe(0);
+
+    expect(timeline[timeline.length - 1].investmentValue).toBeCloseTo(
+      component.plannedFutureValue(),
+      2,
+    );
+  });
 });

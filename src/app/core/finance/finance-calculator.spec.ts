@@ -2,6 +2,7 @@ import { expect, it } from 'vitest';
 import {
   annualRateToMonthlyRate,
   calculateFutureValue,
+  calculateInvestmentTimeline,
   calculateProjection,
   calculateRequiredMonthlyContribution,
 } from './finance-calculator';
@@ -63,5 +64,22 @@ describe('finance-calculator', () => {
     const expectedTotalContributed = 10_000 + projection.requiredMonthlyContribution * 24;
 
     expect(projection.totalContributed).toBeCloseTo(expectedTotalContributed, 2);
+  });
+
+  it('should generate an investment timeline for each year', () => {
+    const timeline = calculateInvestmentTimeline(10_000, 1_500, 5, 10);
+
+    expect(timeline).toHaveLength(6);
+
+    expect(timeline[0]).toEqual({
+      year: 0,
+      contributedAmount: 10_000,
+      investmentValue: 10_000,
+      interestAmount: 0,
+    });
+
+    expect(timeline[5].investmentValue).toBeGreaterThan(timeline[5].contributedAmount);
+
+    expect(timeline[5].interestAmount).toBeGreaterThan(0);
   });
 });

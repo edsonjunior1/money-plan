@@ -11,3 +11,10 @@ export interface InvestmentProjection {
   totalInterest: number;
   finalAmount: number;
 }
+
+export interface InvestmentTimelinePoint {
+  year: number;
+  contributedAmount: number;
+  investmentValue: number;
+  interestAmount: number;
+}

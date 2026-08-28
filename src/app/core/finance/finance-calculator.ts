@@ -1,4 +1,4 @@
-import { InvestmentPlan, InvestmentProjection } from './finance.models';
+import { InvestmentPlan, InvestmentProjection, InvestmentTimelinePoint } from './finance.models';
 
 const MONTHS_PER_YEAR = 12;
 
@@ -74,4 +74,40 @@ export function calculateProjection(plan: InvestmentPlan): InvestmentProjection 
     totalInterest,
     finalAmount,
   };
+}
+
+export function calculateInvestmentTimeline(
+  currentAmount: number,
+  monthlyContribution: number,
+  years: number,
+  annualReturnRate: number,
+): InvestmentTimelinePoint[] {
+  const timeline: InvestmentTimelinePoint[] = [
+    {
+      year: 0,
+      contributedAmount: currentAmount,
+      investmentValue: currentAmount,
+      interestAmount: 0,
+    },
+  ];
+
+  for (let year = 1; year <= years; year++) {
+    const investmentValue = calculateFutureValue(
+      currentAmount,
+      monthlyContribution,
+      year,
+      annualReturnRate,
+    );
+
+    const contributedAmount = currentAmount + monthlyContribution * year * MONTHS_PER_YEAR;
+
+    timeline.push({
+      year,
+      contributedAmount,
+      investmentValue,
+      interestAmount: investmentValue - contributedAmount,
+    });
+  }
+
+  return timeline;
 }
