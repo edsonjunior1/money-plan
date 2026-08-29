@@ -1,29 +1,26 @@
 # Money Plan
 
-Money Plan is a frontend financial planning application built with
-Angular.
+Money Plan is a frontend financial planning application built with Angular 22.
 
-The goal of the project is to provide a simple and interactive way to
-estimate how much a person needs to invest every month to reach a
-financial target within a specific period.
-
-The application also compares the required monthly contribution with the
-amount the user actually plans to invest.
+The project provides an interactive way to estimate how much a person needs to invest every month to reach a financial target within a specific period. It also compares the required monthly contribution with the amount the user actually plans to invest and visualizes how contributions, returns, and investment value evolve over time.
 
 ## Features
 
-- Calculate the required monthly contribution to reach a financial
-  goal
+- Calculate the required monthly contribution to reach a financial goal
 - Project the future value of a planned monthly contribution
 - Compare planned and required monthly investments
 - Calculate estimated investment returns
 - Calculate total contributed amount
+- Generate a yearly investment timeline
+- Display investment growth with interactive ApexCharts visualizations
+- Show target amount, projected amount, and estimated returns summaries
 - Validate financial inputs using Angular Signal Forms
 - Reactive calculations using Angular Signals and computed signals
-- Responsive interface with Tailwind CSS
+- Responsive interface with Angular Material and Tailwind CSS
 - Brazilian currency formatting
-- Financial calculation unit tests
-- Planner behavior tests
+- Export a dedicated financial report as PDF
+- Separate PDF report layout from the interactive application UI
+- Automated tests for financial domain logic, planner behavior, and root application rendering
 
 ## Tech Stack
 
@@ -35,15 +32,16 @@ amount the user actually plans to invest.
 - Angular Material
 - Tailwind CSS 4
 - RxJS
-- Vitest
+- ApexCharts 7
+- ng-apexcharts 3
+- Vitest 4
 - SCSS
-- jsPDF
-- html2canvas
+- jsPDF 4
+- html2canvas-pro 2
 
 ## Architecture
 
-The project currently follows a feature-oriented structure with
-financial domain logic separated from Angular UI code.
+The project follows a feature-oriented structure with financial domain logic separated from Angular UI code.
 
 ```text
 src/
@@ -80,28 +78,29 @@ src/
 
 The `core/finance` directory contains the financial domain logic.
 
-The financial calculations are implemented as pure TypeScript functions
-without dependencies on Angular.
+The financial calculations are implemented as pure TypeScript functions without Angular dependencies. This keeps the business rules independent from the framework and makes them easier to test, reuse, and maintain.
 
-This keeps the business rules independent from the framework and makes
-them easier to test, reuse, and maintain.
+The current finance engine provides:
+
+- annual-to-monthly effective rate conversion
+- required monthly contribution calculation
+- future value calculation
+- investment projection calculation
+- yearly investment timeline generation
 
 ### Features
 
-The `features/planner` directory contains the financial planner
-interface.
+The `features/planner` directory contains the financial planner interface.
 
-Angular Signals are used as the local reactive state mechanism.
+Angular Signals are used as the local reactive state mechanism, while Angular Signal Forms bind and validate the planner inputs.
 
-Angular Signal Forms are used to bind and validate the planner inputs.
+The planner also owns the presentation-specific concerns for the current feature, including chart configuration and PDF report generation.
 
-No global state management library is currently required because the
-planner state belongs exclusively to the feature.
+No global state management library is currently required because the planner state belongs exclusively to the feature.
 
 ## Financial Model
 
-The application currently uses an effective annual return rate converted
-into an equivalent monthly rate.
+The application uses an effective annual return rate converted into an equivalent monthly rate.
 
 The monthly rate is calculated as:
 
@@ -109,8 +108,9 @@ The monthly rate is calculated as:
 monthlyRate = (1 + annualRate)^(1 / 12) - 1
 ```
 
-The application assumes that monthly contributions are made at the end
-of each month.
+The annual rate entered by the user is represented as a percentage. For example, `10` means an expected annual return of 10%.
+
+The application assumes that monthly contributions are made at the end of each month.
 
 The current financial model considers:
 
@@ -123,15 +123,17 @@ The current financial model considers:
 From those values, Money Plan calculates:
 
 - Required monthly contribution
-- Projected final amount
+- Projected final amount using the planned contribution
 - Monthly contribution difference
-- Total contributed
+- Total contributed amount
 - Estimated investment returns
+- Year-by-year contributed amount
+- Year-by-year investment value
+- Year-by-year accumulated returns
 
 ## Signal Forms
 
-The planner uses Angular Signal Forms rather than traditional Reactive
-Forms.
+The planner uses Angular Signal Forms rather than traditional Reactive Forms.
 
 The form model is represented by a writable signal:
 
@@ -161,20 +163,50 @@ readonly plannerForm = form(this.model, (path) => {
 });
 ```
 
-Inputs are connected directly to the form field tree:
+Inputs are connected directly to the field tree:
 
 ```html
 <input type="number" [formField]="plannerForm.targetAmount" />
 ```
 
-Calculations automatically react to changes in the underlying signal
-model.
+Calculations automatically react to changes in the underlying signal model.
+
+## Investment Growth Chart
+
+The planner uses ApexCharts through `ng-apexcharts` to visualize the yearly projection.
+
+The chart currently displays three series:
+
+- Investment value
+- Total contributed
+- Investment returns
+
+The data comes from the same pure financial calculation layer used by the rest of the application, keeping the visualization derived from a single source of truth.
+
+The interface also displays summary values for:
+
+- Target amount
+- Projected amount
+- Estimated returns
+
+## PDF Export
+
+Money Plan can generate a PDF report from the current financial plan.
+
+The export uses:
+
+- `html2canvas-pro` to render the report content
+- `jsPDF` to generate and download the PDF document
+
+A dedicated report layout is rendered separately from the interactive form. This avoids exporting Material input controls and produces a cleaner financial report containing the plan values, projection results, goal status, and investment growth chart.
+
+`html2canvas-pro` is used instead of the original `html2canvas` package because the UI stack uses modern CSS color functions such as `oklch()`.
 
 ## Development
 
 The project requires Node.js 24.
 
-The version currently used during development is:
+The development environment currently uses:
 
 ```text
 Node.js 24.15.0
@@ -182,7 +214,7 @@ npm 11.x
 Angular CLI 22.x
 ```
 
-Install the dependencies:
+Install dependencies:
 
 ```bash
 npm install
@@ -212,23 +244,27 @@ Current test suite:
 
 ```text
 Test Files  3 passed
-Tests       15 passed
+Tests       17 passed
 ```
 
-The tests currently cover both the financial domain logic and planner
-behavior.
+The tests currently cover the financial domain logic, planner behavior, and root application rendering.
 
 Examples include:
 
 - Annual-to-monthly interest rate conversion
 - Required monthly contribution
+- Zero-interest calculations
 - Future value calculation
 - Projection calculation
 - Contribution accumulation
+- Investment timeline generation
 - Planner default values
 - Reactive recalculation
 - Goal tracking status
-- Signal Form behavior
+- Planned contribution projection
+- Planner timeline integration
+- Root application creation
+- Router outlet rendering
 
 ## Build
 
@@ -238,26 +274,44 @@ Create a production build with:
 npm run build
 ```
 
-Angular will generate the production files inside the `dist/` directory.
+Angular generates the production files inside the `dist/` directory.
 
 ## Current Status
 
-The project is currently under active development.
+The main planner flow is implemented.
 
-The core financial calculation engine, Signal Forms integration, form
-validation, planner interface, and automated tests are already
-implemented.
+The project currently includes:
 
-Future iterations may include additional financial scenarios, improved
-UI components, charts, and PDF export.
+- financial calculation engine
+- Angular Signal Forms integration
+- validation
+- reactive planner interface
+- Angular Material components
+- investment growth chart
+- financial summary cards
+- dedicated PDF report export
+- automated tests
+
+The next project milestone is production validation followed by deployment as a static application.
+
+## Roadmap
+
+Potential future improvements include:
+
+- Additional investment scenarios
+- Inflation-adjusted projections
+- More flexible contribution schedules
+- Reusable formatting utilities
+- Additional chart views
+- Improved PDF pagination and report metadata
+- Accessibility and responsive UI refinements
+- GitHub Pages deployment
 
 ## Disclaimer
 
 Money Plan is an educational financial planning tool.
 
-The calculations provided by the application are simulations based on
-the values entered by the user and should not be considered financial or
-investment advice.
+The calculations provided by the application are simulations based on the values entered by the user and should not be considered financial or investment advice.
 
 Actual investment returns may differ from the projected values.
 
