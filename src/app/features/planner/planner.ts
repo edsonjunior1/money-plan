@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 import html2canvas from 'html2canvas-pro';
-import { jsPDF } from 'jspdf';
+import { PDFDocument } from 'pdf-lib';
 
 import {
   ApexAxisChartSeries,
@@ -229,42 +229,37 @@ export class Planner {
 
       const imageData = canvas.toDataURL('image/png');
 
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      const margin = 10;
-
+      const pdf = await PDFDocument.create();
+      const pageWidth = 595.28;
+      const pageHeight = 841.89;
+      const margin = 28.35;
       const contentWidth = pageWidth - margin * 2;
-
       const printableHeight = pageHeight - margin * 2;
+      const image = await pdf.embedPng(
+        await fetch(imageData).then((response) => response.arrayBuffer()),
+      );
+      const imageHeight = (image.height * contentWidth) / image.width;
 
-      const imageHeight = (canvas.height * contentWidth) / canvas.width;
-
-      let remainingHeight = imageHeight;
-      let position = margin;
-
-      pdf.addImage(imageData, 'PNG', margin, position, contentWidth, imageHeight);
-
-      remainingHeight -= printableHeight;
-
-      while (remainingHeight > 0) {
-        pdf.addPage();
-
-        position = margin - (imageHeight - remainingHeight);
-
-        pdf.addImage(imageData, 'PNG', margin, position, contentWidth, imageHeight);
-
-        remainingHeight -= printableHeight;
+      for (let offset = 0; offset < imageHeight; offset += printableHeight) {
+        const page = pdf.addPage([pageWidth, pageHeight]);
+        page.drawImage(image, {
+          x: margin,
+          y: pageHeight - margin - imageHeight + offset,
+          width: contentWidth,
+          height: imageHeight,
+        });
       }
 
-      pdf.save('money-plan.pdf');
+      const pdfBytes = await pdf.save();
+      const pdfBuffer = new Uint8Array(pdfBytes).buffer as ArrayBuffer;
+      const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+
+      link.href = downloadUrl;
+      link.download = 'money-plan.pdf';
+      link.click();
+      URL.revokeObjectURL(downloadUrl);
     } finally {
       this.isExportingPdf.set(false);
     }
