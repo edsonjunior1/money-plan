@@ -6,9 +6,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import html2canvas from 'html2canvas-pro';
-import { PDFDocument } from 'pdf-lib';
-
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -221,6 +218,11 @@ export class Planner {
     this.isExportingPdf.set(true);
 
     try {
+      const [{ default: html2canvas }, { PDFDocument }] = await Promise.all([
+        import('html2canvas-pro'),
+        import('pdf-lib'),
+      ]);
+
       const canvas = await html2canvas(element, {
         scale: 2,
         backgroundColor: '#ffffff',
