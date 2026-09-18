@@ -26,6 +26,12 @@
     </div>
   </section>
 
+  <div role="alert" class="mb-4 text-sm text-red-800">
+    @if (exportError()) {
+      Could not export your PDF. Please try again.
+    }
+  </div>
+
   <div role="status" class="mb-4 text-sm text-amber-800">
     @if (storageUnavailable()) {
       Your plan could not be saved on this device. Changes may not survive refresh.

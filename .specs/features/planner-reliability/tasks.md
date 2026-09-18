@@ -86,7 +86,7 @@ T2 -> T3 -> T4
 **Gate**: Build
 **Commit**: `fix(planner): recover from PDF export failures`
 **Done when**: PLAN-06 outcomes pass their tests and review.
-**Status**: pending
+**Status**: complete
 
 ## Diagram-Definition Cross-Check
 | Task | Depends on | Diagram | Match |
@@ -153,3 +153,14 @@ Gate: 52 tests pass, 4 added.
 | PLAN-05 unknown paths | src/app/app.routes.spec.ts:42 expect(heading.textContent).toBe('Page not found'); lines 43-48 title, URL, focus, link | Both shallow and nested paths handled |
 | PLAN-05 return navigation | src/app/app.routes.spec.ts:51 expect(TestBed.inject(Router).url).toBe('/'); lines 52-55 title and focused planner heading | Link returns to planner |
 Reverse mapping: four cases map only to PLAN-05. Real RouterTestingHarness and title service used; no router mocks. Shared heading directive is verified through actual route activation. Browser keyboard/AXE checks follow at final validation.
+
+## T6 adequacy review
+Gate: 62 tests pass, 10 added; production build passes outside sandbox (sandbox process exited 134 without diagnostics). Initial transfer estimate 76.16 kB; planner, fallback and PDF dependencies remain lazy chunks.
+| AC | Evidence and assertion | Outcome |
+| --- | --- | --- |
+| PLAN-06 failures | src/app/features/planner/planner-export.spec.ts:80 expect(component.isExportingPdf()).toBe(false); lines 81-87 exact inline alert and cleanup | Capture, image, document, embed, save, download failure handled |
+| PLAN-06 retry | src/app/features/planner/planner-export.spec.ts:108 expect(component.exportError()).toBe(false); lines 109-120 result, filename, MIME and resource cleanup | Same Export PDF button retries successfully |
+| PLAN-06 concurrency | src/app/features/planner/planner-export.spec.ts:137 expect(click).toHaveBeenCalledTimes(1); lines 138-139 valid download and loading | Duplicate handler calls create one download |
+| PLAN-06 invalid form | src/app/features/planner/planner-export.spec.ts:146 expect(download).toBeUndefined(); lines 145-148 | Direct invalid calls do nothing |
+| PLAN-06 cleanup failure | src/app/features/planner/planner-export.spec.ts:156 expect(component.isExportingPdf()).toBe(false); lines 157-158 error and no anchor | Loading always released |
+Reverse mapping: ten added cases map to PLAN-06's failures, retries and guards. Mocks are confined to export dependencies; UI alert, resulting payload, and cleanup are checked. No existing tests removed or weakened. Final browser/PDF/AXE and independent sensor remain for PLAN-07.

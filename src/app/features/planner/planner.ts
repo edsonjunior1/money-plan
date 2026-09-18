@@ -210,15 +210,19 @@ export class Planner {
   readonly reportContent = viewChild<ElementRef<HTMLElement>>('reportContent');
 
   readonly isExportingPdf = signal(false);
+  readonly exportError = signal(false);
 
   async exportPdf(): Promise<void> {
     const element = this.reportContent()?.nativeElement;
 
-    if (!element || this.isExportingPdf()) {
+    if (!element || this.isExportingPdf() || !this.plannerForm().valid()) {
       return;
     }
 
+    this.exportError.set(false);
     this.isExportingPdf.set(true);
+    let downloadUrl: string | undefined;
+    let link: HTMLAnchorElement | undefined;
 
     try {
       const [{ default: html2canvas }, { PDFDocument }] = await Promise.all([
@@ -258,15 +262,24 @@ export class Planner {
       const pdfBytes = await pdf.save();
       const pdfBuffer = new Uint8Array(pdfBytes).buffer as ArrayBuffer;
       const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
-      const downloadUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      downloadUrl = URL.createObjectURL(blob);
+      link = document.createElement('a');
 
       link.href = downloadUrl;
       link.download = 'money-plan.pdf';
+      document.body.append(link);
       link.click();
-      URL.revokeObjectURL(downloadUrl);
+    } catch {
+      this.exportError.set(true);
     } finally {
-      this.isExportingPdf.set(false);
+      try {
+        link?.remove();
+        if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+      } catch {
+        this.exportError.set(true);
+      } finally {
+        this.isExportingPdf.set(false);
+      }
     }
   }
 }

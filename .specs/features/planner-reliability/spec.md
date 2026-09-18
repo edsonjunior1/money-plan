@@ -36,5 +36,5 @@ As a planner user I want consistent outcomes, retained inputs, navigable error p
 | PLAN-03 | Storage | T3 | verified |
 | PLAN-04 | Autosave/reset | T4 | verified |
 | PLAN-05 | Routing | T5 | verified |
-| PLAN-06 | PDF recovery | T6 | implementing |
+| PLAN-06 | PDF recovery | T6 | verified |
 | PLAN-07 | Final validation | Verifier | pending |
