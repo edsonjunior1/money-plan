@@ -56,7 +56,7 @@ T2 -> T3 -> T4
 **Gate**: Full
 **Commit**: `feat(planner): persist validated local drafts`
 **Done when**: PLAN-03 outcomes pass their tests and review.
-**Status**: pending
+**Status**: complete
 
 ### T4: Autosave and reset
 **Where**: `src/app/features/planner/planner.ts` (with its associated template and co-located tests when applicable)
@@ -123,3 +123,13 @@ Gate: 27 tests pass, 8 added; all preserved tests pass.
 | PLAN-02 complete finite numbers | src/app/features/planner/planner-inputs.spec.ts:38 expect(isPlannerInputs(incomplete)).toBe(false); line 40 invalid values for each field | Missing, NaN, infinities, wrong types and negatives rejected |
 | PLAN-02 lower limits | src/app/features/planner/planner-inputs.spec.ts:46 expect(isPlannerInputs({ ...DEFAULT_PLANNER_INPUTS, targetAmount: 0.5 })).toBe(false); lines 47-49 | Invalid duration and root values rejected |
 Reverse mapping: all eight added unit cases map to PLAN-02. No framework-only assertions. Co-located tests meet AGENTS.md and existing conventions.
+
+## T3 adequacy review
+Gate: 44 tests pass, 17 added. Existing cases preserved.
+| AC | Evidence and assertion | Outcome |
+| --- | --- | --- |
+| PLAN-03 record payload/restore | src/app/features/planner/planner-draft.spec.ts:27 expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ version: 1, inputs }); line 28 restore | Exact version and five values |
+| PLAN-03 invalid records | src/app/features/planner/planner-draft.spec.ts:47 expect(draft.restore()).toEqual(DEFAULT_PLANNER_INPUTS) | Defaults for absent, malformed, unsupported, incomplete, invalid inputs |
+| PLAN-03 invalid save | src/app/features/planner/planner-draft.spec.ts:56 expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ version: 1, inputs }) | Last valid record retained |
+| PLAN-03 storage failures | src/app/features/planner/planner-draft.spec.ts:78 expect(draft.storageUnavailable()).toBe(true); lines 86-108 unavailable/read/write outcomes | Defaults, failure signal, prior record retained |
+Reverse mapping: every added case maps to PLAN-03's explicit storage paths. Payloads and fallback values are asserted; no shallow call-count-only cases. Co-located Vitest tests follow project conventions.

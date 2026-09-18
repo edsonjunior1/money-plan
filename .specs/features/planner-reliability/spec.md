@@ -33,7 +33,7 @@ As a planner user I want consistent outcomes, retained inputs, navigable error p
 | --- | --- | --- | --- |
 | PLAN-01 | Planned totals | T1 | verified |
 | PLAN-02 | Shared inputs | T2 | verified |
-| PLAN-03 | Storage | T3 | implementing |
+| PLAN-03 | Storage | T3 | verified |
 | PLAN-04 | Autosave/reset | T4 | implementing |
 | PLAN-05 | Routing | T5 | implementing |
 | PLAN-06 | PDF recovery | T6 | implementing |
