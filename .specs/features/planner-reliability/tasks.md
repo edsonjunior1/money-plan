@@ -46,7 +46,7 @@ T2 -> T3 -> T4
 **Gate**: Full
 **Commit**: `refactor(planner): share typed inputs and defaults`
 **Done when**: PLAN-02 outcomes pass their tests and review.
-**Status**: pending
+**Status**: complete
 
 ### T3: Draft storage
 **Where**: `src/app/features/planner/planner-draft.ts` (with its associated template and co-located tests when applicable)
@@ -113,3 +113,13 @@ Gate: 19 tests pass. No existing tests removed or weakened.
 | PLAN-01 target independence | src/app/features/planner/planner.spec.ts:122 expect(component.totalContributed()).toBe(22_000); lines 123-126 guidance | Same totals, changed guidance |
 | PLAN-01 final minus contributions | src/app/features/planner/planner.spec.ts:132 expect(component.estimatedReturns()).toBe(component.plannedFutureValue() - 27_000) | Fractional duration uses actual final value |
 Reverse mapping: both added tests map only to PLAN-01. Co-located Vitest style follows AGENTS.md. Assertions cover values and displayed outcomes, not call counts. calculateProjection is unchanged.
+
+## T2 adequacy review
+Gate: 27 tests pass, 8 added; all preserved tests pass.
+| AC | Evidence and assertion | Outcome |
+| --- | --- | --- |
+| PLAN-02 defaults | src/app/features/planner/planner-inputs.spec.ts:5 expect(DEFAULT_PLANNER_INPUTS).toEqual(...) | Exact five-field defaults |
+| PLAN-02 boundaries | src/app/features/planner/planner-inputs.spec.ts:16 expect(isPlannerInputs(...)).toBe(true); line 25 fractional years | Existing limits accepted |
+| PLAN-02 complete finite numbers | src/app/features/planner/planner-inputs.spec.ts:38 expect(isPlannerInputs(incomplete)).toBe(false); line 40 invalid values for each field | Missing, NaN, infinities, wrong types and negatives rejected |
+| PLAN-02 lower limits | src/app/features/planner/planner-inputs.spec.ts:46 expect(isPlannerInputs({ ...DEFAULT_PLANNER_INPUTS, targetAmount: 0.5 })).toBe(false); lines 47-49 | Invalid duration and root values rejected |
+Reverse mapping: all eight added unit cases map to PLAN-02. No framework-only assertions. Co-located tests meet AGENTS.md and existing conventions.

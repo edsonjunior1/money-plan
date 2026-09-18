@@ -24,13 +24,7 @@ import {
   calculateRequiredMonthlyContribution,
 } from '../../core/finance/finance-calculator';
 
-interface PlannerFormModel {
-  currentAmount: number;
-  targetAmount: number;
-  years: number;
-  annualReturnRate: number;
-  plannedMonthlyContribution: number;
-}
+import { DEFAULT_PLANNER_INPUTS, PLANNER_INPUT_MINIMUMS, PlannerInputs } from './planner-inputs';
 
 @Component({
   selector: 'app-planner',
@@ -47,24 +41,18 @@ interface PlannerFormModel {
   styleUrl: './planner.scss',
 })
 export class Planner {
-  readonly model = signal<PlannerFormModel>({
-    currentAmount: 0,
-    targetAmount: 100_000,
-    years: 5,
-    annualReturnRate: 10,
-    plannedMonthlyContribution: 1_500,
-  });
+  readonly model = signal<PlannerInputs>({ ...DEFAULT_PLANNER_INPUTS });
 
   readonly plannerForm = form(this.model, (path) => {
     required(path.targetAmount);
-    min(path.targetAmount, 1);
+    min(path.targetAmount, PLANNER_INPUT_MINIMUMS.targetAmount);
 
     required(path.years);
-    min(path.years, 1);
+    min(path.years, PLANNER_INPUT_MINIMUMS.years);
 
-    min(path.currentAmount, 0);
-    min(path.annualReturnRate, 0);
-    min(path.plannedMonthlyContribution, 0);
+    min(path.currentAmount, PLANNER_INPUT_MINIMUMS.currentAmount);
+    min(path.annualReturnRate, PLANNER_INPUT_MINIMUMS.annualReturnRate);
+    min(path.plannedMonthlyContribution, PLANNER_INPUT_MINIMUMS.plannedMonthlyContribution);
   });
 
   readonly requiredMonthlyContribution = computed(() => {
