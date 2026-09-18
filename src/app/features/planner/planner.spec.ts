@@ -232,4 +232,10 @@ describe('Planner', () => {
     expect(component.model()).toEqual(DEFAULT_PLANNER_INPUTS);
     expect(component.plannerForm().valid()).toBe(true);
   });
+  it('keeps the export-only report out of accessibility and keyboard navigation', () => {
+    const report = (fixture.nativeElement as HTMLElement).querySelector('.pdf-report-container')!;
+    expect(report.getAttribute('aria-hidden')).toBe('true');
+    expect(report.hasAttribute('inert')).toBe(true);
+    expect(report.querySelector('.pdf-report')?.textContent).toContain('Projection Results');
+  });
 });
