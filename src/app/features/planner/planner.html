@@ -145,7 +145,7 @@
               <span>Total contributed</span>
 
               <strong>
-                {{ projection().totalContributed | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+                {{ totalContributed() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
               </strong>
             </div>
 
@@ -153,7 +153,7 @@
               <span>Estimated returns</span>
 
               <strong>
-                {{ projection().totalInterest | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+                {{ estimatedReturns() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
               </strong>
             </div>
 
@@ -161,7 +161,7 @@
               <span>Projected final amount</span>
 
               <strong>
-                {{ projection().finalAmount | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
+                {{ plannedFutureValue() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}
               </strong>
             </div>
           </div>
@@ -210,6 +210,11 @@
             </p>
           </div>
         </div>
+
+        <p class="mb-4 text-sm text-gray-600">
+          Total contributed
+          <strong>{{ totalContributed() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}</strong>
+        </p>
 
         <apx-chart
           [series]="chartSeries()"
@@ -323,6 +328,11 @@
           </p>
         </div>
       </div>
+
+      <p class="mt-4 text-sm text-gray-600">
+        Total contributed
+        <strong>{{ totalContributed() | currency: 'BRL' : 'symbol' : '1.2-2' : 'pt-BR' }}</strong>
+      </p>
 
       <div
         class="mt-4 rounded-lg p-4"

@@ -1,0 +1,115 @@
+# Planner reliability tasks
+
+## Execution Protocol
+Use tlc-spec-driven Execute with one verified local commit per task and a fresh independent verifier after the final task. User approved implementation and push to main. Tests accompany their deliverable.
+
+## Test Coverage Matrix
+Guidelines: AGENTS.md; existing co-located Vitest component and finance tests; package.json and angular.json.
+
+| Layer | Required Test Type | Coverage Expectation | Location | Command |
+| --- | --- | --- | --- | --- |
+| Input model / storage | unit | Every specified boundary and failure | co-located *.spec.ts | npm test -- --watch=false |
+| Planner | integration | Exact outcomes and each stated edge/failure | planner.spec.ts and planner-export.spec.ts | npm test -- --watch=false |
+| Routes | integration | Both routes, titles, focus and return navigation | app.routes.spec.ts | npm test -- --watch=false |
+| Browser | manual + AXE | Keyboard, announcements, focus, PDF | validation.md | Browser against local server |
+
+## Gate Check Commands
+| Gate | Command |
+| --- | --- |
+| Quick / Full | npm test -- --watch=false |
+| Build | npm test -- --watch=false and npm run build |
+No lint script is configured. Use installed Prettier to check touched files.
+
+## Execution Plan
+Execute T1 through T6 sequentially. Dependency arrows:
+```
+T2 -> T3 -> T4
+```
+
+## Task Breakdown
+
+### T1: Planned totals
+**Where**: `src/app/features/planner/planner.ts` (with its associated template and co-located tests when applicable)
+**Depends on**: None
+**Requirement**: PLAN-01
+**Tests**: Component integration: assert exact totals in Results, Growth summaries and report; target changes only guidance.
+**Gate**: Full
+**Commit**: `fix(planner): use planned contributions throughout results`
+**Done when**: PLAN-01 outcomes pass their tests and review.
+**Status**: complete
+
+### T2: Shared inputs
+**Where**: `src/app/features/planner/planner-inputs.ts` (with its associated template and co-located tests when applicable)
+**Depends on**: None
+**Requirement**: PLAN-02
+**Tests**: Unit: five defaults, complete finite numbers, minimum boundaries and invalid values. Existing planner defaults stay equal.
+**Gate**: Full
+**Commit**: `refactor(planner): share typed inputs and defaults`
+**Done when**: PLAN-02 outcomes pass their tests and review.
+**Status**: pending
+
+### T3: Draft storage
+**Where**: `src/app/features/planner/planner-draft.ts` (with its associated template and co-located tests when applicable)
+**Depends on**: T2
+**Requirement**: PLAN-03
+**Tests**: Unit: valid roundtrip; absent/malformed/unsupported/incomplete records; getter, read and write failures; invalid saves preserve prior record.
+**Gate**: Full
+**Commit**: `feat(planner): persist validated local drafts`
+**Done when**: PLAN-03 outcomes pass their tests and review.
+**Status**: pending
+
+### T4: Autosave and reset
+**Where**: `src/app/features/planner/planner.ts` (with its associated template and co-located tests when applicable)
+**Depends on**: T3
+**Requirement**: PLAN-04
+**Tests**: Component integration: restore before first write, reload, invalid edits, reset and pristine/untouched state, warning and usable results after storage failure.
+**Gate**: Full
+**Commit**: `feat(planner): restore drafts and reset plans`
+**Done when**: PLAN-04 outcomes pass their tests and review.
+**Status**: pending
+
+### T5: Route handling
+**Where**: `src/app/app.routes.ts` (with its associated template and co-located tests when applicable)
+**Depends on**: None
+**Requirement**: PLAN-05
+**Tests**: RouterTestingHarness: lazy routes, titles, unknown nested paths, return link and heading focus.
+**Gate**: Full
+**Commit**: `feat(routing): handle unknown pages and heading focus`
+**Done when**: PLAN-05 outcomes pass their tests and review.
+**Status**: pending
+
+### T6: PDF recovery
+**Where**: `src/app/features/planner/planner.ts` (with its associated template and co-located tests when applicable)
+**Depends on**: None
+**Requirement**: PLAN-06
+**Tests**: Component integration: dependency failures, exact alert, loading cleanup, retry success, duplicate and invalid guards, object URL and anchor cleanup.
+**Gate**: Build
+**Commit**: `fix(planner): recover from PDF export failures`
+**Done when**: PLAN-06 outcomes pass their tests and review.
+**Status**: pending
+
+## Diagram-Definition Cross-Check
+| Task | Depends on | Diagram | Match |
+| --- | --- | --- | --- |
+| T1 | None | None | yes |
+| T2 | None | None | yes |
+| T3 | T2 | T2 -> T3 | yes |
+| T4 | T3 | T3 -> T4 | yes |
+| T5 | None | None | yes |
+| T6 | None | None | yes |
+
+## Test Co-location Validation
+| Tasks | Required | Planned | Match |
+| --- | --- | --- | --- |
+| T1, T4, T5, T6 | integration | integration in each task | yes |
+| T2, T3 | unit | unit in each task | yes |
+
+## T1 adequacy review
+Gate: 19 tests pass. No existing tests removed or weakened.
+| AC | Evidence and assertion | Outcome |
+| --- | --- | --- |
+| PLAN-01 exact totals/guidance | src/app/features/planner/planner.spec.ts:106 expect(component.totalContributed()).toBe(22_000); lines 107-110 final/returns/guidance | 22000 / 0 / 7500 / -6500 |
+| PLAN-01 all summaries | src/app/features/planner/planner.spec.ts:116 expect(text).toMatch(/Total contributed\s+R\$\s*22\.000,00/); lines 117-118 returns/final | Exact BRL across three surfaces |
+| PLAN-01 target independence | src/app/features/planner/planner.spec.ts:122 expect(component.totalContributed()).toBe(22_000); lines 123-126 guidance | Same totals, changed guidance |
+| PLAN-01 final minus contributions | src/app/features/planner/planner.spec.ts:132 expect(component.estimatedReturns()).toBe(component.plannedFutureValue() - 27_000) | Fractional duration uses actual final value |
+Reverse mapping: both added tests map only to PLAN-01. Co-located Vitest style follows AGENTS.md. Assertions cover values and displayed outcomes, not call counts. calculateProjection is unchanged.

@@ -21,7 +21,6 @@ import {
 import {
   calculateFutureValue,
   calculateInvestmentTimeline,
-  calculateProjection,
   calculateRequiredMonthlyContribution,
 } from '../../core/finance/finance-calculator';
 
@@ -79,15 +78,9 @@ export class Planner {
     });
   });
 
-  readonly projection = computed(() => {
+  readonly totalContributed = computed(() => {
     const value = this.model();
-
-    return calculateProjection({
-      currentAmount: value.currentAmount,
-      targetAmount: value.targetAmount,
-      years: value.years,
-      annualReturnRate: value.annualReturnRate,
-    });
+    return value.currentAmount + value.plannedMonthlyContribution * value.years * 12;
   });
 
   readonly plannedFutureValue = computed(() => {
@@ -118,11 +111,7 @@ export class Planner {
 
   readonly isOnTrack = computed(() => this.monthlyDifference() >= 0);
 
-  readonly estimatedReturns = computed(() => {
-    const timeline = this.investmentTimeline();
-
-    return timeline[timeline.length - 1]?.interestAmount ?? 0;
-  });
+  readonly estimatedReturns = computed(() => this.plannedFutureValue() - this.totalContributed());
 
   readonly chartSeries = computed<ApexAxisChartSeries>(() => {
     const timeline = this.investmentTimeline();
