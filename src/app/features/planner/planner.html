@@ -8,20 +8,29 @@
       </p>
     </div>
 
-    <button
-      matButton="filled"
-      type="button"
-      [disabled]="plannerForm().invalid() || isExportingPdf()"
-      (click)="exportPdf()"
-      data-html2canvas-ignore
-    >
-      @if (isExportingPdf()) {
-        Exporting...
-      } @else {
-        Export PDF
-      }
-    </button>
+    <div class="flex flex-wrap justify-end gap-2">
+      <button matButton="outlined" type="button" (click)="resetPlan()">Reset plan</button>
+      <button
+        matButton="filled"
+        type="button"
+        [disabled]="plannerForm().invalid() || isExportingPdf()"
+        (click)="exportPdf()"
+        data-html2canvas-ignore
+      >
+        @if (isExportingPdf()) {
+          Exporting...
+        } @else {
+          Export PDF
+        }
+      </button>
+    </div>
   </section>
+
+  <div role="status" class="mb-4 text-sm text-amber-800">
+    @if (storageUnavailable()) {
+      Your plan could not be saved on this device. Changes may not survive refresh.
+    }
+  </div>
 
   <section class="grid gap-6 md:grid-cols-2">
     <div class="space-y-5 rounded-xl border border-gray-200 p-6">

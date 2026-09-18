@@ -1,6 +1,6 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, ElementRef, signal, viewChild } from '@angular/core';
-import { form, FormField, min, required } from '@angular/forms/signals';
+import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { form, FormField, min, required, validate } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,7 +24,14 @@ import {
   calculateRequiredMonthlyContribution,
 } from '../../core/finance/finance-calculator';
 
-import { DEFAULT_PLANNER_INPUTS, PLANNER_INPUT_MINIMUMS, PlannerInputs } from './planner-inputs';
+import {
+  DEFAULT_PLANNER_INPUTS,
+  isPlannerInputs,
+  PLANNER_INPUT_MINIMUMS,
+  PlannerInputs,
+} from './planner-inputs';
+
+import { PlannerDraft } from './planner-draft';
 
 @Component({
   selector: 'app-planner',
@@ -41,9 +48,14 @@ import { DEFAULT_PLANNER_INPUTS, PLANNER_INPUT_MINIMUMS, PlannerInputs } from '.
   styleUrl: './planner.scss',
 })
 export class Planner {
-  readonly model = signal<PlannerInputs>({ ...DEFAULT_PLANNER_INPUTS });
+  private readonly draft = inject(PlannerDraft);
+  readonly storageUnavailable = this.draft.storageUnavailable;
+  readonly model = signal<PlannerInputs>(this.draft.restore());
 
   readonly plannerForm = form(this.model, (path) => {
+    validate(path, ({ value }) =>
+      isPlannerInputs(value()) ? undefined : { kind: 'invalidInputs' },
+    );
     required(path.targetAmount);
     min(path.targetAmount, PLANNER_INPUT_MINIMUMS.targetAmount);
 
@@ -54,6 +66,17 @@ export class Planner {
     min(path.annualReturnRate, PLANNER_INPUT_MINIMUMS.annualReturnRate);
     min(path.plannedMonthlyContribution, PLANNER_INPUT_MINIMUMS.plannedMonthlyContribution);
   });
+
+  constructor() {
+    effect(() => {
+      if (this.plannerForm().valid()) this.draft.save(this.model());
+    });
+  }
+
+  resetPlan(): void {
+    this.plannerForm().reset({ ...DEFAULT_PLANNER_INPUTS });
+    this.draft.save(this.model());
+  }
 
   readonly requiredMonthlyContribution = computed(() => {
     const value = this.model();

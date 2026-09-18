@@ -66,7 +66,7 @@ T2 -> T3 -> T4
 **Gate**: Full
 **Commit**: `feat(planner): restore drafts and reset plans`
 **Done when**: PLAN-04 outcomes pass their tests and review.
-**Status**: pending
+**Status**: complete
 
 ### T5: Route handling
 **Where**: `src/app/app.routes.ts` (with its associated template and co-located tests when applicable)
@@ -133,3 +133,13 @@ Gate: 44 tests pass, 17 added. Existing cases preserved.
 | PLAN-03 invalid save | src/app/features/planner/planner-draft.spec.ts:56 expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ version: 1, inputs }) | Last valid record retained |
 | PLAN-03 storage failures | src/app/features/planner/planner-draft.spec.ts:78 expect(draft.storageUnavailable()).toBe(true); lines 86-108 unavailable/read/write outcomes | Defaults, failure signal, prior record retained |
 Reverse mapping: every added case maps to PLAN-03's explicit storage paths. Payloads and fallback values are asserted; no shallow call-count-only cases. Co-located Vitest tests follow project conventions.
+
+## T4 adequacy review
+Gate: 48 tests pass, 4 added. All existing tests retained; test setup now isolates localStorage.
+| AC | Evidence and assertion | Outcome |
+| --- | --- | --- |
+| PLAN-04 restore/save ordering | src/app/features/planner/planner.spec.ts:155 expect(component.model()).toEqual(inputs); lines 157-172 assert first payload and recreated model | Restored values saved, defaults never overwrite |
+| PLAN-04 invalid edits | src/app/features/planner/planner.spec.ts:187 expect(localStorage.getItem('money-plan.planner-draft')).toBe(saved) | Negative/empty DOM edits preserve valid record |
+| PLAN-04 reset | src/app/features/planner/planner.spec.ts:203 expect(component.model()).toEqual(DEFAULT_PLANNER_INPUTS); lines 204-210 assert dirty/touched false and exact persisted defaults | Defaults and interaction state reset |
+| PLAN-04 failure UI | src/app/features/planner/planner.spec.ts:225 expect(...status.textContent).toContain('Changes may not survive refresh.'); line 228 expect(component.plannedFutureValue()).toBe(22_000) | Warning and usable calculations/reset |
+Reverse mapping: four added integration cases map to PLAN-04. DOM edits and button activation test user outcomes. Existing minimum rules are retained; the shared guard also rejects empty/nonfinite numeric edits. No unrelated tests or changes.

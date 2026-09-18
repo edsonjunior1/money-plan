@@ -3,6 +3,7 @@ import localePt from '@angular/common/locales/pt';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Planner } from './planner';
+import { DEFAULT_PLANNER_INPUTS } from './planner-inputs';
 
 registerLocaleData(localePt);
 
@@ -11,6 +12,7 @@ describe('Planner', () => {
   let fixture: ComponentFixture<Planner>;
 
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Planner],
     }).compileComponents();
@@ -18,6 +20,11 @@ describe('Planner', () => {
     fixture = TestBed.createComponent(Planner);
     component = fixture.componentInstance;
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    localStorage.clear();
   });
 
   it('should create', () => {
@@ -130,5 +137,99 @@ describe('Planner', () => {
     component.model.update((value) => ({ ...value, years: 1.5 }));
     expect(component.totalContributed()).toBe(27_000);
     expect(component.estimatedReturns()).toBe(component.plannedFutureValue() - 27_000);
+  });
+
+  it('restores before autosave and retains changes when the planner is recreated', async () => {
+    fixture.destroy();
+    const inputs = {
+      currentAmount: 10_000,
+      targetAmount: 100_000,
+      years: 1,
+      annualReturnRate: 0,
+      plannedMonthlyContribution: 1_000,
+    };
+    localStorage.setItem('money-plan.planner-draft', JSON.stringify({ version: 1, inputs }));
+    const save = vi.spyOn(Storage.prototype, 'setItem');
+    fixture = TestBed.createComponent(Planner);
+    component = fixture.componentInstance;
+    expect(component.model()).toEqual(inputs);
+    await fixture.whenStable();
+    expect(save).toHaveBeenCalledWith(
+      'money-plan.planner-draft',
+      JSON.stringify({ version: 1, inputs }),
+    );
+    expect(save).not.toHaveBeenCalledWith(
+      'money-plan.planner-draft',
+      JSON.stringify({ version: 1, inputs: DEFAULT_PLANNER_INPUTS }),
+    );
+    component.model.update((value) => ({ ...value, plannedMonthlyContribution: 2_000 }));
+    await fixture.whenStable();
+    fixture.destroy();
+    fixture = TestBed.createComponent(Planner);
+    component = fixture.componentInstance;
+    await fixture.whenStable();
+    expect(component.model()).toEqual({ ...inputs, plannedMonthlyContribution: 2_000 });
+    expect(component.totalContributed()).toBe(34_000);
+  });
+
+  it('does not replace the last valid draft with invalid edits', async () => {
+    const input = (fixture.nativeElement as HTMLElement).querySelector('input')!;
+    input.value = '10000';
+    input.dispatchEvent(new Event('input'));
+    await fixture.whenStable();
+    const saved = localStorage.getItem('money-plan.planner-draft');
+    expect(JSON.parse(saved!).inputs.currentAmount).toBe(10_000);
+    for (const invalid of ['-100', '']) {
+      input.value = invalid;
+      input.dispatchEvent(new Event('input'));
+      await fixture.whenStable();
+      expect(component.plannerForm().invalid()).toBe(true);
+      expect(localStorage.getItem('money-plan.planner-draft')).toBe(saved);
+    }
+  });
+
+  it('resets inputs and form interaction state and persists the defaults', async () => {
+    component.model.update((value) => ({ ...value, targetAmount: -1 }));
+    component.plannerForm.targetAmount().markAsDirty();
+    component.plannerForm.targetAmount().markAsTouched();
+    await fixture.whenStable();
+    expect(component.plannerForm().dirty()).toBe(true);
+    expect(component.plannerForm().touched()).toBe(true);
+    const reset = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Reset plan',
+    )!;
+    reset.click();
+    await fixture.whenStable();
+    expect(component.model()).toEqual(DEFAULT_PLANNER_INPUTS);
+    expect(component.plannerForm().dirty()).toBe(false);
+    expect(component.plannerForm().touched()).toBe(false);
+    expect(component.plannerForm().valid()).toBe(true);
+    expect(JSON.parse(localStorage.getItem('money-plan.planner-draft')!)).toEqual({
+      version: 1,
+      inputs: DEFAULT_PLANNER_INPUTS,
+    });
+  });
+
+  it('shows a nonblocking storage warning while calculations and reset remain usable', async () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota');
+    });
+    component.model.set({
+      currentAmount: 10_000,
+      targetAmount: 100_000,
+      years: 1,
+      annualReturnRate: 0,
+      plannedMonthlyContribution: 1_000,
+    });
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[role="status"]')?.textContent,
+    ).toContain('Changes may not survive refresh.');
+    expect(component.plannedFutureValue()).toBe(22_000);
+    expect(component.plannerForm().valid()).toBe(true);
+    component.resetPlan();
+    await fixture.whenStable();
+    expect(component.model()).toEqual(DEFAULT_PLANNER_INPUTS);
+    expect(component.plannerForm().valid()).toBe(true);
   });
 });
