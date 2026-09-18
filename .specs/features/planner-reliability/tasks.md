@@ -76,7 +76,7 @@ T2 -> T3 -> T4
 **Gate**: Full
 **Commit**: `feat(routing): handle unknown pages and heading focus`
 **Done when**: PLAN-05 outcomes pass their tests and review.
-**Status**: pending
+**Status**: complete
 
 ### T6: PDF recovery
 **Where**: `src/app/features/planner/planner.ts` (with its associated template and co-located tests when applicable)
@@ -143,3 +143,13 @@ Gate: 48 tests pass, 4 added. All existing tests retained; test setup now isolat
 | PLAN-04 reset | src/app/features/planner/planner.spec.ts:203 expect(component.model()).toEqual(DEFAULT_PLANNER_INPUTS); lines 204-210 assert dirty/touched false and exact persisted defaults | Defaults and interaction state reset |
 | PLAN-04 failure UI | src/app/features/planner/planner.spec.ts:225 expect(...status.textContent).toContain('Changes may not survive refresh.'); line 228 expect(component.plannedFutureValue()).toBe(22_000) | Warning and usable calculations/reset |
 Reverse mapping: four added integration cases map to PLAN-04. DOM edits and button activation test user outcomes. Existing minimum rules are retained; the shared guard also rejects empty/nonfinite numeric edits. No unrelated tests or changes.
+
+## T5 adequacy review
+Gate: 52 tests pass, 4 added.
+| AC | Evidence and assertion | Outcome |
+| --- | --- | --- |
+| PLAN-05 lazy route order | src/app/app.routes.spec.ts:19 expect(routes.map((route) => route.path)).toEqual(['', '**']); lines 21-22 lazy only | Root retained; wildcard last |
+| PLAN-05 root title/focus | src/app/app.routes.spec.ts:31 expect(TestBed.inject(Title).getTitle()).toBe('Financial Planner &#124; Money Plan'); line 32 expect(document.activeElement).toBe(heading) | Root heading focused |
+| PLAN-05 unknown paths | src/app/app.routes.spec.ts:42 expect(heading.textContent).toBe('Page not found'); lines 43-48 title, URL, focus, link | Both shallow and nested paths handled |
+| PLAN-05 return navigation | src/app/app.routes.spec.ts:51 expect(TestBed.inject(Router).url).toBe('/'); lines 52-55 title and focused planner heading | Link returns to planner |
+Reverse mapping: four cases map only to PLAN-05. Real RouterTestingHarness and title service used; no router mocks. Shared heading directive is verified through actual route activation. Browser keyboard/AXE checks follow at final validation.

@@ -33,10 +33,13 @@ import {
 
 import { PlannerDraft } from './planner-draft';
 
+import { PageHeading } from '../../shared/page-heading';
+
 @Component({
   selector: 'app-planner',
   imports: [
     CurrencyPipe,
+    PageHeading,
     FormField,
     MatButtonModule,
     MatCardModule,
